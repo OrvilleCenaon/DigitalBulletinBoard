@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Campus Digital Bulletin Board</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-title">📢 Campus Bulletin Board</div>
+  <nav class="topbar-nav" id="topbar-nav">
+    <button class="active" onclick="switchPage('feed', this)">Feed</button>
+    <button onclick="switchPage('submit', this)">Submit</button>
+    <button onclick="switchPage('admin', this)">Admin</button>
+  </nav>
+  <button class="hamburger" id="hamburger" onclick="toggleNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<!-- NAV OVERLAY (mobile) -->
+<div id="nav-overlay" class="nav-overlay" onclick="toggleNav()"></div>
+
+<!-- FEED -->
+<div id="feed" class="page active">
+  <div class="container">
+    <h1>Announcements</h1>
+    <div class="flex filter-search">
+      <select onchange="setFilter(this.value)">
+        <option value="all">All Organizations</option>
+        <option value="Central Student Government">Central Student Government</option>
+        <option value="The Flare">The Flare</option>
+        <option value="Honor Society">Honor Society</option>
+        <option value="Computer Science Clique">Computer Science Clique</option>
+        <option value="Sinag-Tala">Sinag-Tala</option>
+        <option value="Builders of Innovative Technologist Society">Builders of Innovative Technologist Society</option>
+        <option value="Business Management Society">Business Management Society</option>
+        <option value="Cavite Communicators">Cavite Communicators</option>
+        <option value="Circle of Hospitality and Tourism Students">Circle of Hospitality and Tourism Students</option>
+        <option value="Cavite Young Leaders for Entrepreneurship">Cavite Young Leaders for Entrepreneurship</option>
+        <option value="Educators' Guild for Excellence">Educators' Guild for Excellence</option>
+        <option value="Samahan ng mga Magaaral ng Sikolohiya">Samahan ng mga Magaaral ng Sikolohiya</option>
+        <option value="Young Office Professional Advocates">Young Office Professional Advocates</option>
+      </select>
+      <input class="search" placeholder="Search..." oninput="handleSearch(this.value)">
+    </div>
+    <div id="feed-list"></div>
+  </div>
+</div>
+
+<!-- SUBMIT -->
+<div id="submit" class="page">
+  <div class="container">
+    <h1>Submit Announcement</h1>
+
+    <select id="org">
+      <option value="">Select organization</option>
+      <option value="Central Student Government">Central Student Government</option>
+      <option value="The Flare">The Flare</option>
+      <option value="Honor Society">Honor Society</option>
+      <option value="Computer Science Clique">Computer Science Clique</option>
+      <option value="Sinag-Tala">Sinag-Tala</option>
+      <option value="Builders of Innovative Technologist Society">Builders of Innovative Technologist Society</option>
+      <option value="Business Management Society">Business Management Society</option>
+      <option value="Cavite Communicators">Cavite Communicators</option>
+      <option value="Circle of Hospitality and Tourism Students">Circle of Hospitality and Tourism Students</option>
+      <option value="Cavite Young Leaders for Entrepreneurship">Cavite Young Leaders for Entrepreneurship</option>
+      <option value="Educators' Guild for Excellence">Educators' Guild for Excellence</option>
+      <option value="Samahan ng mga Magaaral ng Sikolohiya">Samahan ng mga Magaaral ng Sikolohiya</option>
+      <option value="Young Office Professional Advocates">Young Office Professional Advocates</option>
+    </select>
+
+    <input id="title" placeholder="Title" oninput="updateCharCount()">
+
+    <textarea id="body" placeholder="Content" rows="5" oninput="updateBodyCount(); renderPreview()"></textarea>
+
+    <input id="fb" placeholder="Facebook link (optional)">
+    <input id="submittedBy" placeholder="Submitted by">
+
+    <label class="switch">
+      <input type="checkbox" id="urgent">
+      <span class="slider"></span> Urgent
+    </label>
+
+    <br>
+    <button class="btn-submit" onclick="submitPost()">Submit</button>
+
+    <h3>Preview</h3>
+    <div id="preview-container"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin" class="page">
+  <div class="container">
+    <h1>Admin Panel</h1>
+    <button class="btn-logout" onclick="logoutAdmin()">Logout</button>
+    <br>
+    <h3>Pending</h3>
+    <div id="admin-pending"></div>
+    <h3>Approved</h3>
+    <div id="admin-approved"></div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN POPUP -->
+<div id="admin-login" class="popup">
+  <div class="popup-box">
+    <h3>Admin Login</h3>
+    <input type="text" id="admin-username" placeholder="Username">
+    <input type="password" id="admin-pass" placeholder="Password">
+    <button class="btn-login" onclick="loginAdmin()">Login</button>
+    <button class="close-btn" onclick="closeAdminLogin()">×</button>
+  </div>
+</div>
+
+<!-- GENERAL POPUP -->
+<div id="popup" class="popup">
+  <div class="popup-box">
+    <button class="close-btn" onclick="closePopup()">×</button>
+    <div class="popup-content">
+      <p id="popup-text"></p>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase loaded ONCE -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCmF4tGQxXQhVdZb_xjNi-L51YMXL3IQX4",
+  authDomain: "digitalbulletinboard-ceff8.firebaseapp.com",
+  projectId: "digitalbulletinboard-ceff8",
+  storageBucket: "digitalbulletinboard-ceff8.firebasestorage.app",
+  messagingSenderId: "352525489205",
+  appId: "1:352525489205:web:fabbd1170449e79f180d7c",
+  measurementId: "G-RYV43KTGWK"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const storage = firebase.storage();
+</script>
+
+<script src="script.js"></script>
+</body>
+</html>
